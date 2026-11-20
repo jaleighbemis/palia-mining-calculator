@@ -57,7 +57,7 @@ I used custom AI instructions in `.github/copilot-instructions.md` to guide deve
 
 ## Netlify Deployment
 
-Deployment URL: To be added after deployment.
+Deployment URL: https://palia-mining-calculator.netlify.app/
 
 ## Possible Future Improvements
 
