@@ -104,6 +104,7 @@ const data = ref(loadData())
 
 const playerName = ref('')
 const teamName = ref('')
+const copyStatus = ref('')
 
 const current = computed(() => data.value[location.value])
 const currentPreset = computed(() => presets[location.value])
@@ -183,6 +184,34 @@ function saveScore() {
 
   playerName.value = ''
   resetCounts()
+}
+
+async function copyResults() {
+  const name = playerName.value.trim()
+
+  if (!name) {
+    copyStatus.value = 'Please enter a player name before copying results.'
+    return
+  }
+
+  const summary = [
+    `Player: ${name}`,
+    `Team: ${teamName.value.trim() || 'Individual'}`,
+    `Mining Location: ${currentPreset.value.name}`,
+    `Total Score: ${total.value} points`
+  ].join('\n')
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('Clipboard access is unavailable in this browser.')
+    }
+
+    await navigator.clipboard.writeText(summary)
+    copyStatus.value = 'Results copied to clipboard.'
+  } catch (error) {
+    console.error('Unable to copy results:', error)
+    copyStatus.value = 'Could not copy results. Check clipboard permissions and try again.'
+  }
 }
 
 // Remove an individual player score
@@ -389,19 +418,25 @@ function exportScores() {
           </div>
         </div>
 
-        <input
-          v-model.number="gem.normal"
-          type="number"
-          min="0"
-          aria-label="Normal quantity"
-        />
+        <label class="gem-counter">
+          <span class="mobile-label">Normal</span>
+          <input
+            v-model.number="gem.normal"
+            type="number"
+            min="0"
+            aria-label="Normal quantity"
+          />
+        </label>
 
-        <input
-          v-model.number="gem.starred"
-          type="number"
-          min="0"
-          aria-label="Star quality quantity"
-        />
+        <label class="gem-counter">
+          <span class="mobile-label">⭐ Star</span>
+          <input
+            v-model.number="gem.starred"
+            type="number"
+            min="0"
+            aria-label="Star quality quantity"
+          />
+        </label>
 
         <button
           class="remove-button"
@@ -479,7 +514,23 @@ function exportScores() {
         >
           Reset Counts
         </button>
+
+        <button
+          class="copy-button"
+          @click="copyResults"
+        >
+          📋 Copy Results
+        </button>
       </div>
+
+      <p
+        v-if="copyStatus"
+        class="copy-status"
+        role="status"
+        aria-live="polite"
+      >
+        {{ copyStatus }}
+      </p>
 
     </section>
 
@@ -813,6 +864,18 @@ input:focus {
   text-align: center;
 }
 
+.gem-counter {
+  min-width: 0;
+}
+
+.gem-counter input {
+  text-align: center;
+}
+
+.mobile-label {
+  display: none;
+}
+
 .gem-name {
   color: #e7d2ff;
   font-weight: bold;
@@ -917,6 +980,18 @@ input:focus {
   border: 1px solid #8b6eae;
 }
 
+.copy-button {
+  background: #43315e;
+  border: 1px solid #795ba6;
+}
+
+.copy-status {
+  margin: 0;
+  color: #d0b4e7;
+  font-size: 13px;
+  text-align: center;
+}
+
 /* LEADERBOARDS */
 
 .subtitle {
@@ -978,6 +1053,10 @@ footer p {
 /* MOBILE LAYOUT */
 
 @media (max-width: 600px) {
+  .app button {
+    min-height: 46px;
+  }
+
   .location-buttons {
     grid-template-columns: 1fr;
   }
@@ -990,14 +1069,59 @@ footer p {
     padding: 17px;
   }
 
-  .gem-header,
-  .gem-row {
-    gap: 6px;
-    grid-template-columns: minmax(0, 2.5fr) 1fr 1fr 24px;
+  .gem-header {
+    display: none;
   }
 
-  .gem-row input {
-    padding: 8px 4px;
+  .gem-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
+    gap: 10px;
+    padding: 16px 0;
+  }
+
+  .gem-details {
+    grid-column: 1 / -1;
+  }
+
+  .gem-name {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .points-edit {
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .points-edit input {
+    min-height: 44px;
+    padding: 8px;
+  }
+
+  .gem-counter {
+    gap: 6px;
+    color: #cfc2e3;
+    font-size: 14px;
+  }
+
+  .mobile-label {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .gem-counter input {
+    min-height: 48px;
+    padding: 10px 6px;
+    font-size: 16px;
+  }
+
+  .gem-row > .remove-button {
+    min-width: 44px;
+    min-height: 48px;
+    align-self: end;
+    justify-self: center;
+    font-size: 18px;
   }
 
   .section-title {
